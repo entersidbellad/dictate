@@ -1,7 +1,5 @@
 # Dictate — local Wispr Flow clone for macOS
 
-> Shared for reference/personal use — not licensed for redistribution or commercial use.
-
 Hold **Right ⌘**, speak, release — your words are transcribed **entirely on-device** (NVIDIA Parakeet via MLX) and pasted into whatever app has focus. No subscription, no cloud, no audio ever leaves your Mac.
 
 ## Install

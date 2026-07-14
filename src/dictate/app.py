@@ -17,9 +17,11 @@ from . import cleaner as cleaner_mod
 from . import transcriber as transcriber_mod
 from .cleaner import Cleaner
 from .commands import (
+    REWRITE_STYLES,
     TONE_INSTRUCTIONS,
     add_to_dictionary,
     apply_dictionary_casing,
+    extract_list_request,
     load_dictionary,
     parse_command,
     tone_for_bundle,
@@ -252,6 +254,7 @@ class DictateApp(rumps.App):
                     continue
                 command = parse_command(raw)
                 if command is not None:
+                    print(f"[command] parsed: {command[0]}")
                     self._handle_command(*command)
                     continue
                 self._insert_dictation(raw, bundle)
@@ -265,15 +268,24 @@ class DictateApp(rumps.App):
     def _insert_dictation(self, raw: str, bundle: str | None) -> None:
         text = raw
         dictionary = load_dictionary()
+        list_body = extract_list_request(raw) if self.cleanup_item.state else None
         if self.cleanup_item.state:
             tone = tone_for_bundle(bundle) if self.tone_item.state else "neutral"
             text = self.cleaner.clean(
-                raw,
+                list_body if list_body is not None else raw,
                 tone_instruction=TONE_INSTRUCTIONS[tone],
                 dictionary=dictionary,
             )
+            if list_body is not None:
+                # second pass: the rewrite prompt is the one proven to split
+                # items into bullets reliably
+                bullets = self.cleaner.rewrite(text, REWRITE_STYLES["bullet points"])
+                if bullets:
+                    text = bullets
+                print(f"[dictation] bullet list: {'ok' if bullets else 'fell back'}")
         text = apply_dictionary_casing(text, dictionary)
         status = insert_text(text)
+        print(f"[dictation] insert status: {status if status != 'ok' else 'ok'}")
         if status == "ok":
             self.last_text = text
             self.last_insert_at = time.monotonic()
@@ -314,14 +326,17 @@ class DictateApp(rumps.App):
                 self._command_failed("rewrite", blocker)
                 return
             new = self.cleaner.rewrite(self.last_text, arg)
+            print(f"[command] rewrite generated: {'ok' if new else 'nothing'}")
             if new is None or new == self.last_text:
                 self._command_failed("rewrite", "model produced nothing usable")
                 return
             if not undo_in_frontmost():
                 self._command_failed("rewrite", "permissions")
                 return
+            print("[command] rewrite: undo posted")
             time.sleep(0.15)  # let the target app process the undo first
             status = insert_text(new)
+            print(f"[command] rewrite insert status: {status}")
             if status == "ok":
                 self.last_text = new
                 self.last_insert_at = time.monotonic()

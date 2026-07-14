@@ -4,6 +4,7 @@ from dictate import commands as commands_mod
 from dictate.commands import (
     add_to_dictionary,
     apply_dictionary_casing,
+    extract_list_request,
     load_dictionary,
     parse_command,
     tone_for_bundle,
@@ -39,6 +40,38 @@ def test_rewrite_natural_variants():
     ):
         cmd = parse_command(phrase)
         assert cmd is not None and cmd[0] == "rewrite", phrase
+
+
+def test_rewrite_tolerates_asr_commas():
+    """Regression: Parakeet punctuates pauses — 'Make it, formal.' must parse."""
+    for phrase in (
+        "Make it, formal.",
+        "Make it, more formal.",
+        "Can you, make it formal.",
+        "Scratch, that.",
+    ):
+        assert parse_command(phrase) is not None, phrase
+
+
+def test_list_prefix_extraction():
+    assert extract_list_request(
+        "Bullet points: buy milk, call mom, and email the professor."
+    ) == "buy milk, call mom, and email the professor."
+    assert extract_list_request("In bullet points buy milk and call mom") == (
+        "buy milk and call mom"
+    )
+    assert extract_list_request("As a list, first do X then do Y") == (
+        "first do X then do Y"
+    )
+
+
+def test_list_prefix_not_triggered_by_normal_speech():
+    for phrase in (
+        "The bullet points in that slide were great.",
+        "I made a list of groceries yesterday.",
+        "He points at the board a lot.",
+    ):
+        assert extract_list_request(phrase) is None, phrase
 
 
 def test_scratch_natural_variants():

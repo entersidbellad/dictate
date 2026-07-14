@@ -81,7 +81,10 @@ class Cleaner:
                 self._model, self._tokenizer = load(MODEL_ID)
 
     def clean(
-        self, text: str, tone_instruction: str = "", dictionary: list[str] | None = None
+        self,
+        text: str,
+        tone_instruction: str = "",
+        dictionary: list[str] | None = None,
     ) -> str:
         """Return the cleaned transcript, or the original text if cleanup fails."""
         if not text:

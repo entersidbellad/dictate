@@ -25,12 +25,15 @@ REWRITE_STYLES = {
     "a list": "a bulleted list (start each line with '- ')",
 }
 
-_POLITE = r"(?:(?:can|could|would) you |please )?"
+# ASR often inserts commas at speech pauses ("Make it, formal."), so every
+# junction tolerates an optional comma.
+_POLITE = r"(?:(?:can|could|would) you,? |please,? )?"
 _SCRATCH_RE = re.compile(
-    rf"^\s*{_POLITE}(?:scratch|undo|delete) that(?:,? please)?[.!]?\s*$", re.IGNORECASE
+    rf"^\s*{_POLITE}(?:scratch|undo|delete),? that(?:,? please)?[.!]?\s*$",
+    re.IGNORECASE,
 )
 _REWRITE_RE = re.compile(
-    rf"^\s*{_POLITE}(?:make (?:it|this|that)|rewrite (?:it|this|that)(?: as)?)\s+"
+    rf"^\s*{_POLITE}(?:make (?:it|this|that)|rewrite (?:it|this|that)(?: as)?),?\s+"
     r"(?:way |a bit |a little )?(.+?)(?:,? please)?[.!]?\s*$",
     re.IGNORECASE,
 )
@@ -38,6 +41,19 @@ _DICT_ADD_RE = re.compile(
     rf"^\s*{_POLITE}add (.+?) to (?:my |the )?dictionary(?:,? please)?[.!]?\s*$",
     re.IGNORECASE,
 )
+
+# dictation-time list trigger: "bullet points: buy milk, call mom, ..."
+_LIST_PREFIX_RE = re.compile(
+    r"^\s*(?:in |as |make )?(?:bullet points?|a bullet list|a list|list form)[:,.]?\s+(.+)$",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def extract_list_request(text: str) -> str | None:
+    """If the dictation starts with a list trigger ("bullet points: ..."),
+    return the remainder to be formatted as bullets; else None."""
+    m = _LIST_PREFIX_RE.match(text)
+    return m.group(1).strip() if m else None
 
 MAX_DICTIONARY_WORD_LEN = 40
 

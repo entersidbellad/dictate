@@ -22,6 +22,7 @@ from .commands import (
     add_to_dictionary,
     apply_dictionary_casing,
     extract_list_request,
+    extract_style_request,
     load_dictionary,
     parse_command,
     tone_for_bundle,
@@ -269,10 +270,18 @@ class DictateApp(rumps.App):
         text = raw
         dictionary = load_dictionary()
         list_body = extract_list_request(raw) if self.cleanup_item.state else None
+        style_req = None
+        if list_body is None and self.cleanup_item.state:
+            style_req = extract_style_request(raw)
         if self.cleanup_item.state:
             tone = tone_for_bundle(bundle) if self.tone_item.state else "neutral"
+            body = raw
+            if list_body is not None:
+                body = list_body
+            elif style_req is not None:
+                body = style_req[1]
             text = self.cleaner.clean(
-                list_body if list_body is not None else raw,
+                body,
                 tone_instruction=TONE_INSTRUCTIONS[tone],
                 dictionary=dictionary,
             )
@@ -283,6 +292,11 @@ class DictateApp(rumps.App):
                 if bullets:
                     text = bullets
                 print(f"[dictation] bullet list: {'ok' if bullets else 'fell back'}")
+            elif style_req is not None:
+                styled = self.cleaner.rewrite(text, style_req[0])
+                if styled:
+                    text = styled
+                print(f"[dictation] inline style: {'ok' if styled else 'fell back'}")
         text = apply_dictionary_casing(text, dictionary)
         status = insert_text(text)
         print(f"[dictation] insert status: {status if status != 'ok' else 'ok'}")

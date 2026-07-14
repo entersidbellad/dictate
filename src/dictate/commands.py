@@ -55,6 +55,28 @@ def extract_list_request(text: str) -> str | None:
     m = _LIST_PREFIX_RE.match(text)
     return m.group(1).strip() if m else None
 
+
+# inline style: "Make it formal. Can you send me the report" — command and
+# content in one utterance. Requires punctuation after the style so partial
+# matches inside normal sentences ("make it formal enough to...") don't fire.
+_STYLE_PREFIX_RE = re.compile(
+    r"^\s*make (?:it|this|that),?\s+(?:way |a bit |a little )?"
+    r"(?P<style>[A-Za-z ]+?)[.,:]\s+(?P<rest>.+)$",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def extract_style_request(text: str) -> tuple[str, str] | None:
+    """If the dictation starts with "make it <style>." followed by content,
+    return (style_instruction, content); else None. Unknown styles → None."""
+    m = _STYLE_PREFIX_RE.match(text)
+    if not m:
+        return None
+    style = _normalize_style(m.group("style"))
+    if style is None:
+        return None
+    return style, m.group("rest").strip()
+
 MAX_DICTIONARY_WORD_LEN = 40
 
 

@@ -5,6 +5,7 @@ from dictate.commands import (
     add_to_dictionary,
     apply_dictionary_casing,
     extract_list_request,
+    extract_style_request,
     load_dictionary,
     parse_command,
     tone_for_bundle,
@@ -72,6 +73,35 @@ def test_list_prefix_not_triggered_by_normal_speech():
         "He points at the board a lot.",
     ):
         assert extract_list_request(phrase) is None, phrase
+
+
+SIDDHARTH_UTTERANCE = (
+    "Make it formal. Can you send an email to Siddharth saying, "
+    '"Hey, what\'s up? Are you in San Francisco?"'
+)
+
+
+def test_inline_style_prefix_real_user_utterance():
+    """Regression: command + content in one breath must style the content."""
+    assert parse_command(SIDDHARTH_UTTERANCE) is None  # not a bare command
+    result = extract_style_request(SIDDHARTH_UTTERANCE)
+    assert result is not None
+    style, rest = result
+    assert "formal" in style
+    assert rest.startswith("Can you send an email to Siddharth")
+
+
+def test_inline_style_prefix_variants():
+    assert extract_style_request("Make it casual. hey are you around")
+    assert extract_style_request("Make it more formal: send me the report")
+    assert extract_style_request("make it shorter, we need the numbers today")
+
+
+def test_inline_style_prefix_not_triggered_by_normal_speech():
+    # no punctuation separator, or unknown style → normal dictation
+    assert extract_style_request("Make it formal enough to impress them.") is None
+    assert extract_style_request("Make it work. We ship on Friday.") is None
+    assert extract_style_request("Make it formal.") is None  # bare command, no content
 
 
 def test_scratch_natural_variants():

@@ -36,6 +36,6 @@ def tick(_timer):
 
 NSApplication.sharedApplication()
 NSTimer.scheduledTimerWithTimeInterval_repeats_block_(0.067, True, tick)
-print("Showing cat demo for ~8 seconds (bottom-center of screen)…")
+print("Showing cat demo for ~8 seconds (bottom-right corner of screen)…")
 AppHelper.runConsoleEventLoop(installInterrupt=True)
 print("Demo done.")

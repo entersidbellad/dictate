@@ -224,8 +224,15 @@ class CatOverlay:
     def _ensure_built(self) -> None:
         if self._window is not None:
             return
-        screen = NSScreen.mainScreen().frame()
-        rect = NSMakeRect(screen.size.width / 2 - SIZE / 2, 70, SIZE, SIZE)
+        # bottom-right corner, desktop-pet style; visibleFrame keeps it clear
+        # of the Dock and menu bar
+        screen = NSScreen.mainScreen().visibleFrame()
+        rect = NSMakeRect(
+            screen.origin.x + screen.size.width - SIZE - 16,
+            screen.origin.y + 8,
+            SIZE,
+            SIZE,
+        )
         w = NSWindow.alloc().initWithContentRect_styleMask_backing_defer_(
             rect, NSWindowStyleMaskBorderless, NSBackingStoreBuffered, False
         )

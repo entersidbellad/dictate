@@ -66,7 +66,7 @@ Restart `dictate` after granting. If the hotkey does nothing, Input Monitoring i
 
 ## The cat 🐈
 
-While you hold Right ⌘, an animated ginger kitten appears at the bottom-center of the screen and lip-syncs to your voice (mouth opens with your mic level). When you release, it looks up and thinks (animated thought bubble) while transcription runs, then fades away once your text is inserted. Toggle via **Show Cat** in the menu. Preview anytime with `uv run python scripts/cat_demo.py`. The overlay is click-through and floats above full-screen apps.
+While you hold Right ⌘, an animated ginger kitten appears in the bottom-right corner of the screen (desktop-pet style) and lip-syncs to your voice (mouth opens with your mic level). When you release, it looks up and thinks (animated thought bubble) while transcription runs, then fades away once your text is inserted. Toggle via **Show Cat** in the menu. Preview anytime with `uv run python scripts/cat_demo.py`. The overlay is click-through and floats above full-screen apps.
 
 **Custom cat art**: drop three transparent PNGs into `src/dictate/assets/` — `cat_idle.png` (mouth closed), `cat_talk.png` (mouth open), `cat_think.png` (looking up) — and restart. The overlay switches to your sprites automatically (frame-swap lip-sync + squash-and-stretch); if any file is missing or unreadable it falls back to the built-in drawn kitten. Generate them with any AI image tool (e.g. "Pixar-style ginger tabby kitten, front facing, mouth open, transparent background").
 
